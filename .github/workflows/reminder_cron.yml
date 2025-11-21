@@ -1,0 +1,28 @@
+name: Reminder Cron Job
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"  # Runs every 5 minutes (UTC time)
+
+jobs:
+  check-reminders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Dependencies
+        run: pip install --no-cache-dir -r requirements.txt
+
+      - name: Run Reminder System
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+        run: python reminder.py
