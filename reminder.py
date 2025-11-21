@@ -54,14 +54,22 @@ def is_within_window(reminder_time_str: str, current_time: datetime, window_minu
 def get_reminders_to_send():
     """Query Supabase for reminders that need to be sent"""
     try:
-        today = get_current_nigeria_time().date().isoformat()
+        today = get_current_nigeria_time()
+        now = today.date()
+        
+        
+        one_hour_later = now + timedelta(hours=1)
+        
+        now_str = now.strftime("%H:%M:%S")
+        one_hour_str = one_hour_later.strftime("%H:%M:%S")
+        
         
         # Query reminders
         response = supabase.table('reminder').select('*').or_(
             f'last_notified_date.is.null,last_notified_date.lt.{today}'
         ).or_(
-            'expires_on.is.null,expires_on.gte.{}'.format(today)
-        ).execute()
+            'expires_on.is.null,expires_on.gt.{}'.format(today)
+        ).filter("reminder_time", "gte", now_str).filter("reminder_time", "lte", one_hour_str).execute()
         
         return response.data
     except Exception as e:
