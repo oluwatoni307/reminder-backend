@@ -32,7 +32,7 @@ try:
         service_account_info = json.loads(FIREBASE_CREDENTIALS_CONTENT)
         
         # Initialize credentials using the dictionary content
-        cred = credentials.Certificate.from_service_account_info(service_account_info)
+        cred = credentials.Certificate(service_account_info)
         firebase_admin.initialize_app(cred)
         print("✅ Firebase initialized from content.")
     else:
