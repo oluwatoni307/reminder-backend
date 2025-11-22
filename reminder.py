@@ -54,22 +54,21 @@ def time_to_string(t: datetime):
     """Convert time object to HH:MM:SS string"""
     return t.strftime('%H:%M:%S')
 
-def is_within_window(reminder_time_str: str, current_time: datetime, window_minutes=5):
-    """Check if current time is within window of reminder time"""
+def is_within_window(reminder_time_str: str, current_time: datetime, window_minutes=20):
+    """Check if reminder time is within the next X minutes from now"""
     # Parse reminder time
     reminder_hour, reminder_minute = map(int, reminder_time_str.split(':')[:2])
     reminder_time = time(reminder_hour, reminder_minute)
     
-    # Convert current datetime to time
+    # Get current time as time object
     current_time_only = current_time.time()
     
-    # Create time window
-    reminder_datetime = datetime.combine(current_time.date(), reminder_time)
-    window_start = (reminder_datetime - timedelta(minutes=0)).time()
-    window_end = (reminder_datetime + timedelta(minutes=window_minutes)).time()
+    # Calculate the end of the window (20 minutes from now)
+    current_datetime = datetime.combine(current_time.date(), current_time_only)
+    window_end = (current_datetime + timedelta(minutes=window_minutes)).time()
     
-    # Check if current time is within window
-    if window_start <= current_time_only <= window_end:
+    # Return True if reminder is between now and 20 minutes from now
+    if current_time_only <= reminder_time <= window_end:
         return True
     return False
 
