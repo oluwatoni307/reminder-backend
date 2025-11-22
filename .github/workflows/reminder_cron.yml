@@ -2,7 +2,7 @@ name: Reminder Cron Job
 
 on:
   schedule:
-    - cron: "*/20 * * * *"  # Runs every 5 minutes (UTC time)
+    - cron: "*/5 * * * *"  # Runs every 5 minutes (UTC time)
 
 jobs:
   check-reminders:
