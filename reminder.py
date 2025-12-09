@@ -167,7 +167,7 @@ def main():
     print(f"\n📋 Found {len(reminders)} active reminders to check")
     
     if not reminders:
-        print("ℹ️  No reminders found")
+        print("ℹ️  No reminders found")
         return
     
     # Check each reminder
@@ -176,29 +176,34 @@ def main():
     
     for reminder in reminders:
         reminder_id = reminder['id']
-        user_id = reminder.get('user_id', 'Unknown User') # Use .get for safer access
+        user_id = reminder.get('user_id', 'Unknown User')
         fcm_token = reminder.get('fcm_token')
         reminder_time = reminder['reminder_time']
+        medication_name = reminder.get('name', 'your medication')
+        dose = reminder.get('dose', '')
         
         # Skip if no token is available
         if not fcm_token:
-            print(f"   ❌ Skipping reminder {reminder_id}: No FCM token available.")
+            print(f"   ❌ Skipping reminder {reminder_id}: No FCM token available.")
             skip_count += 1
             continue
 
         print(f"\n👤 Checking reminder for user: {user_id}")
-        print(f"   Reminder time: {reminder_time}")
-        print(f"   Current time: {current_time.strftime('%H:%M:%S')}")
+        print(f"   Reminder time: {reminder_time}")
+        print(f"   Current time: {current_time.strftime('%H:%M:%S')}")
         
         # Check if within time window
         if is_within_window(reminder_time, current_time):
-            print(f"   ✅ Within time window - SENDING")
+            print(f"   ✅ Within time window - SENDING")
+            
+            # Create persuasive notification text
+            notification_body = f"Time to take {medication_name} - {dose}"
             
             # Send notification
             success = send_fcm_notification(
                 fcm_token=fcm_token,
-                title="Reminder",
-                body=f"It's time for your {reminder_time} reminder!"
+                title="💊 Medication Reminder",
+                body=notification_body
             )
             
             if success:
@@ -206,18 +211,17 @@ def main():
                 update_reminder(reminder_id)
                 send_count += 1
             else:
-                print(f"   ❌ Failed to send notification")
+                print(f"   ❌ Failed to send notification")
         else:
-            print(f"   ⏭️  Not within time window - SKIPPING")
+            print(f"   ⏭️  Not within time window - SKIPPING")
             skip_count += 1
     
     # Summary
     print("\n" + "="*60)
     print(f"📊 Summary:")
-    print(f"   Total checked: {len(reminders)}")
-    print(f"   Sent: {send_count}")
-    print(f"   Skipped: {skip_count}")
+    print(f"   Total checked: {len(reminders)}")
+    print(f"   Sent: {send_count}")
+    print(f"   Skipped: {skip_count}")
     print("="*60 + "\n")
-
 if __name__ == "__main__":
     main()
