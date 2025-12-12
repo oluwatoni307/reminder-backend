@@ -125,23 +125,38 @@ def update_reminder(reminder_id):
 
 # --- Firebase Functions ---
 
-def send_fcm_notification(fcm_token, title, body):
-    """Send FCM notification using Firebase Admin SDK"""
+def send_fcm_notification(fcm_token, title, body, medicine_id=None, schedule_id=None):
+    """Send FCM notification using Firebase Admin SDK with medicine_id in data"""
     if not firebase_admin._apps:
         print("❌ Firebase app not initialized.")
         return False
         
     try:
+        # Build the data payload
+        data_payload = {
+            "notification_type": "medication_reminder",
+        }
+        
+        # Add medicine_id if provided
+        if medicine_id:
+            data_payload["medicine_id"] = str(medicine_id)
+        
+        # Add schedule_id if provided
+        if schedule_id:
+            data_payload["schedule_id"] = str(schedule_id)
+        
         message = messaging.Message(
             notification=messaging.Notification(
                 title=title,
                 body=body,
             ),
+            data=data_payload,  # Add the data payload here
             token=fcm_token,
         )
         
         response = messaging.send(message)
         print(f"✅ Notification sent successfully: {response}")
+        print(f"   📦 Data payload: {data_payload}")
         return True
     except Exception as e:
         print(f"❌ Error sending notification: {e}")
@@ -181,6 +196,8 @@ def main():
         reminder_time = reminder['reminder_time']
         medication_name = reminder.get('name', 'your medication')
         dose = reminder.get('dose', '')
+        medicine_id = reminder.get('medicine_id')  # Get medicine_id from reminder
+        schedule_id = reminder.get('schedule_id')  # Get schedule_id if available
         
         # Skip if no token is available
         if not fcm_token:
@@ -191,6 +208,7 @@ def main():
         print(f"\n👤 Checking reminder for user: {user_id}")
         print(f"   Reminder time: {reminder_time}")
         print(f"   Current time: {current_time.strftime('%H:%M:%S')}")
+        print(f"   Medicine ID: {medicine_id}")
         
         # Check if within time window
         if is_within_window(reminder_time, current_time):
@@ -199,11 +217,13 @@ def main():
             # Create persuasive notification text
             notification_body = f"Time to take {medication_name} - {dose}"
             
-            # Send notification
+            # Send notification with medicine_id
             success = send_fcm_notification(
                 fcm_token=fcm_token,
                 title="💊 Medication Reminder",
-                body=notification_body
+                body=notification_body,
+                medicine_id=medicine_id,  # Pass medicine_id here
+                schedule_id=schedule_id   # Pass schedule_id if available
             )
             
             if success:
@@ -223,5 +243,6 @@ def main():
     print(f"   Sent: {send_count}")
     print(f"   Skipped: {skip_count}")
     print("="*60 + "\n")
+    
 if __name__ == "__main__":
     main()
